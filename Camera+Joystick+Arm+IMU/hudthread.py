@@ -1,5 +1,25 @@
+#!/usr/bin/env python
 from joystickthread3 import *
+from sensor_msgs.msg import Imu
+from tf.transformations import euler_from_quaternion
+from math import degrees
+import rospy
 
+heading =0
+
+
+def callback_imu(msg):
+    global heading
+
+    orientation_list = [msg.orientation.x, msg.orientation.y, msg.orientation.z, msg.orientation.w]
+    (roll, pitch, yaw) = euler_from_quaternion(orientation_list)
+
+    yaw = degrees(yaw)
+    if yaw < 0:
+        yaw += 360
+    yaw = (yaw) % 360
+
+    heading = 360 - yaw
 
 class ThreadHud(QThread):
 
@@ -8,9 +28,16 @@ class ThreadHud(QThread):
     def __init__(self, parent=None):
         QThread.__init__(self, parent=None)
 
-    def run(self):
-        self.ih=0;
 
+
+
+    def run(self):
+
+        rospy.init_node('GUI_node', anonymous=True, disable_signals=True)
+        rate = rospy.Rate(50)  # 1hz
+        rospy.Subscriber("/imu_data/raw", Imu, callback_imu)
+
+        self.ih = 0
         font = cv2.FONT_HERSHEY_SIMPLEX
 
         self.crr = numpy.arange(60+self.ih,121+self.ih)
@@ -18,6 +45,10 @@ class ThreadHud(QThread):
         #print(self.crr[-1])
 
         while True:
+            global heading
+
+            self.ih = int(heading)
+            print(heading)
             self.arr = numpy.arange(181)
             self.arr = (self.arr - 90 + self.ih+360)%360
             #print(self.arr)
@@ -48,10 +79,8 @@ class ThreadHud(QThread):
             convimg = QPixmap.fromImage(convimg)
             image = convimg.scaled(640,480,Qt.KeepAspectRatio)
 
-            if self.ih<360:
-                self.ih = self.ih + 1
-            else:
-                self.ih=0
 
             self.signalHUD.emit(image)
-            time.sleep(0.5)
+            
+
+
