@@ -1,4 +1,4 @@
-from joystickthread import *
+from joystickthread2 import *
 
 
 class ThreadIMU(QThread):
@@ -11,12 +11,10 @@ class ThreadIMU(QThread):
 
     def run(self):
         while True:
-            if self.i<=360:
+            if self.i<360:
                 self.i = self.i + 1
             else:
                 self.i=0
             val = str(self.i)+"°"
             self.signalIMU.emit(val)
             time.sleep(0.1)
-
-
