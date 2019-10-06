@@ -247,6 +247,7 @@ class Ui_MainWindow(object):
         self.th6 = Thread6(self)
         self.thm = ThreadM(self)
         self.thud = ThreadHud(self)
+        self.thgps = ThreadGPS(self)
 
         self.selectCameraCombo.currentIndexChanged.connect(self.camopen)
         self.motorcode.clicked.connect(self.startmc)
@@ -284,6 +285,9 @@ class Ui_MainWindow(object):
         self.thm.signalm.connect(self.label_21.setText)
         self.thud.start()
         self.thud.signalHUD.connect(self.headingLabel.setPixmap)
+        self.thgps.start()
+        self.thgps.signalLat.connect(self.label_12.setText)
+        self.thgps.signalLon.connect(self.label_13.setText)
 
     def camopen(self,i):
         if i==-1:

@@ -62,6 +62,7 @@ class ThreadM(QThread):
             msg='k'
         elif self.lhat[1]==-1:
             msg='h'
+        msg = "Mast cam: "+msg
         print(msg)
         self.signalm.emit(msg)
         if self.mode == 's':

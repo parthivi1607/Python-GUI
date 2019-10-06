@@ -5,11 +5,12 @@ from tf.transformations import euler_from_quaternion
 from math import degrees
 import rospy
 
+
 heading =0
 
 def callback_imu(msg):
     global heading
-    
+
     orientation_list = [msg.orientation.x, msg.orientation.y, msg.orientation.z, msg.orientation.w]
     (roll, pitch, yaw) = euler_from_quaternion(orientation_list)
 
@@ -20,7 +21,7 @@ def callback_imu(msg):
 
     heading = 360 - yaw
 
-    
+
 class ThreadHud(QThread):
 
     signalHUD = pyqtSignal(QPixmap)
@@ -78,8 +79,8 @@ class ThreadHud(QThread):
 
 
             self.signalHUD.emit(image)
-           
-        
+
+
 class ThreadGPS(QThread):
     signalLat = pyqtSignal(str)
     signalLon = pyqtSignal(str)
