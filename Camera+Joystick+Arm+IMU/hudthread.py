@@ -7,10 +7,9 @@ import rospy
 
 heading =0
 
-
 def callback_imu(msg):
     global heading
-
+    
     orientation_list = [msg.orientation.x, msg.orientation.y, msg.orientation.z, msg.orientation.w]
     (roll, pitch, yaw) = euler_from_quaternion(orientation_list)
 
@@ -21,15 +20,13 @@ def callback_imu(msg):
 
     heading = 360 - yaw
 
+    
 class ThreadHud(QThread):
 
     signalHUD = pyqtSignal(QPixmap)
 
     def __init__(self, parent=None):
         QThread.__init__(self, parent=None)
-
-
-
 
     def run(self):
 
@@ -81,6 +78,22 @@ class ThreadHud(QThread):
 
 
             self.signalHUD.emit(image)
-            
+           
+        
+class ThreadGPS(QThread):
+    signalLat = pyqtSignal(str)
+    signalLon = pyqtSignal(str)
 
+    def __init__(self, parent=None):
+        QThread.__init__(self, parent=None)
 
+    def run(self):
+        self.lat = 0
+        self.lon = 0
+        while True:
+            msg = str(self.lat)
+            self.signalLat.emit(msg)
+            msg = str(self.lon)
+            self.signalLon.emit(msg)
+            self.lat = self.lat+1
+            self.lon = self.lon+1
