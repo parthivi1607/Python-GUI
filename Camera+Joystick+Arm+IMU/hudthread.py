@@ -1,12 +1,12 @@
 #!/usr/bin/env python
 from joystickthread3 import *
-from sensor_msgs.msg import Imu
+from sensor_msgs.msg import Imu,NavSatFix
 from tf.transformations import euler_from_quaternion
 from math import degrees
 import rospy
 
 
-heading =0
+lat = lon = heading = 0
 
 def callback_imu(msg):
     global heading
@@ -20,6 +20,12 @@ def callback_imu(msg):
     yaw = (yaw) % 360
 
     heading = 360 - yaw
+
+
+def callback_gps(msg):
+    global lat,lon
+    lat = msg.latitude
+    lon = msg.longitude
 
 
 class ThreadHud(QThread):
@@ -46,7 +52,6 @@ class ThreadHud(QThread):
             global heading
 
             self.ih = int(heading)
-            print(heading)
             self.arr = numpy.arange(181)
             self.arr = (self.arr - 90 + self.ih+360)%360
             #print(self.arr)
@@ -82,6 +87,7 @@ class ThreadHud(QThread):
 
 
 class ThreadGPS(QThread):
+    global lat,lon
     signalLat = pyqtSignal(str)
     signalLon = pyqtSignal(str)
 
@@ -89,12 +95,13 @@ class ThreadGPS(QThread):
         QThread.__init__(self, parent=None)
 
     def run(self):
+
+        rospy.Subscriber("/fix", NavSatFix, callback_gps)
+
         self.lat = 0
         self.lon = 0
         while True:
-            msg = str(self.lat)
-            self.signalLat.emit(msg)
-            msg = str(self.lon)
-            self.signalLon.emit(msg)
-            self.lat = self.lat+1
-            self.lon = self.lon+1
+            self.lat = lat
+            self.lon = lon
+            self.signalLat.emit(str(self.lat))
+            self.signalLon.emit(str(self.lon))
