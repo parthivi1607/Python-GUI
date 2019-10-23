@@ -62,9 +62,9 @@ class ThreadM(QThread):
             msg='k'
         elif self.lhat[1]==-1:
             msg='h'
-        msg = "Mast cam: "+msg
-        print(msg)
-        self.signalm.emit(msg)
+        msgs = "Mast cam: "+msg
+        print(msgs)
+        self.signalm.emit(msgs)
         if self.mode == 's':
             self.ser.write(msg.encode())
         elif self.mode == 't':
@@ -75,7 +75,7 @@ class ThreadM(QThread):
         self.x_joy1 = self.joy1.get_axis(1)*-7999+7999
         self.y_joy1 = self.joy1.get_axis(0)*7999+7999
         self.x_joy = self.joy.get_axis(1)*-7999+7999
-        self.y_joy = self.joy.get_axis(2)*7999+7999
+        self.y_joy = 7999
         self.lhat=self.joy1.get_hat(0)
         self.rhat=self.joy.get_hat(0)
         right='b'
@@ -93,6 +93,11 @@ class ThreadM(QThread):
             grip='c'
         elif self.joy1.get_button(4):
             grip='d'
+        if self.joy.get_button(7):
+            self.y_joy = 4000
+        if self.joy.get_button(9):
+            self.y_joy = 12000
+
         msg='alx'+str(int(self.x_joy1)).zfill(5)+'y'+str(int(self.y_joy1)).zfill(5)+grip+'rx'+str(int(self.x_joy)).zfill(5)+'y'+str(int(self.y_joy)).zfill(5)+right
         print(msg)
         self.signala.emit(msg)
