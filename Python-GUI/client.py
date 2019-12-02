@@ -6,11 +6,23 @@ import numpy as np
 import struct
 import zlib
 
-client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-client_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-client_socket.connect((socket.gethostname(), 8486))
-connection = client_socket.makefile('wb')
+try:
+    client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    client_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+except socket.error:
+    print "Error creating socket"
+    sys.exit(1)
 
+try:
+    client_socket.connect((socket.gethostname(), 8486))
+except socket.gaierror:
+    print "Address-related error connecting to server"
+    sys.exit(1)
+except socket.error:
+    print "Connection error"
+    sys.exit(1)
+
+connection = client_socket.makefile('wb')
 data = b""
 payload_size = struct.calcsize(">L")
 print("payload_size: {}".format(payload_size))

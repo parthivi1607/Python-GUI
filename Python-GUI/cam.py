@@ -165,23 +165,58 @@ class CamFeed(QThread):
     def __init__(self, parent=None):
         QThread.__init__(self, parent=None)
 
+    def accepting_connectns(self):
+        for c in self.all_connections:
+            c.close()
+        del self.all_connections[:]
+        del self.all_addresses[:]
+
+        while True:
+            try:
+                conn, addr= self.s.accept()
+                self.s.setblocking(1)
+
+                self.all_connections.append(conn)
+                self.all_addresses.append(addr)
+
+            except:
+                print ("Error accepting connection")
+
     def run(self):
         import socket
         import pickle
         import struct
 
-        s=socket.socket(socket.AF_INET,socket.SOCK_STREAM)
-        print('Socket created')
-        s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-        s.bind((socket.gethostname(),8486))
-        print('Socket bind complete')
-        s.listen(10)
+        self.all_connections = []
+        self.all_addresses = []
+
+        try:
+            self.s=socket.socket(socket.AF_INET,socket.SOCK_STREAM)
+            print('Socket created')
+            self.s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        except socket.error:
+            print "Error creating socket"
+            sys.exit(1)
+
+        try:
+            self.s.bind((socket.gethostname(),8486))
+            print('Socket bind complete')
+        except socket.gaierror:
+            print "Address-related error connecting to server"
+            sys.exit(1)
+        except socket.error:
+            print "Connection error"
+            sys.exit(1)
+
+        self.s.listen(10)
         print('Socket now listening')
-        conn,addr=s.accept()
 
         cam = cv2.VideoCapture(0)
         cam.set(3, 320)
         cam.set(4, 240)
+
+        thr = threading.Thread(target=self.accepting_connectns)
+        thr.start()
 
         img_counter = 0
         encode_param = [int(cv2.IMWRITE_JPEG_QUALITY), 90]
@@ -192,20 +227,12 @@ class CamFeed(QThread):
             data = pickle.dumps(frame, 0)
             size = len(data)
 
-            #print("{}: {}".format(img_counter, size))
-            try:
-                conn.sendall(struct.pack(">L", size) + data)
-            except:
-                print("Client closed")
-                s=socket.socket(socket.AF_INET,socket.SOCK_STREAM)
-                print('Socket created')
-                s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-                s.bind((socket.gethostname(),8486))
-                print('Socket bind complete')
-                s.listen(10)
-                print('Socket now listening')
-                conn,addr=s.accept()
-                # self.stop()
-            img_counter += 1
+            for conn in self.all_connections:
+                try:
+                    conn.sendall(struct.pack(">L", size) + data)
+                except:
+                    print("Error sending data")
 
+        thr.join()
         cam.release()
+        s.close()
