@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-from joy import *
+from joy2 import *
 
 
 class ThreadHud(QThread):

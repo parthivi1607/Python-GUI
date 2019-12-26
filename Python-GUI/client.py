@@ -4,7 +4,6 @@ import cv2
 import pickle
 import numpy as np
 import struct
-import zlib
 
 try:
     client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)

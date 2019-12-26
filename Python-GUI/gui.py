@@ -16,7 +16,7 @@ class Ui_MainWindow(object):
         MainWindow.resize(3000,2000)
         MainWindow.setStyleSheet('background : rgba(250,250,250,0.25)')
         icon = QtGui.QIcon()
-        icon.addPixmap(QtGui.QPixmap("logo_icon.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        icon.addPixmap(QtGui.QPixmap("logo_icon.png"), QtGui.QIcon.Normal, QtGui.QIcon.On)
         MainWindow.setWindowIcon(icon)
         self.centralwidget = QtWidgets.QWidget(MainWindow)
         self.centralwidget.setObjectName("centralwidget")
@@ -24,9 +24,13 @@ class Ui_MainWindow(object):
         self.gridLayout.setObjectName("gridLayout")
         self.horizontalLayout_2 = QtWidgets.QHBoxLayout()
         self.horizontalLayout_2.setObjectName("horizontalLayout_2")
-        self.motorcode = QtWidgets.QPushButton(self.centralwidget)
-        self.motorcode.setObjectName("motorcode")
-        self.horizontalLayout_2.addWidget(self.motorcode)
+        self.label_21 = QtWidgets.QLabel(self.centralwidget)
+        self.label_21.setAlignment(QtCore.Qt.AlignCenter)
+        self.label_21.setObjectName("label_21")
+        self.horizontalLayout_2.addWidget(self.label_21)
+        # self.motorcode = QtWidgets.QPushButton(self.centralwidget)
+        # self.motorcode.setObjectName("motorcode")
+        # self.horizontalLayout_2.addWidget(self.motorcode)
         self.selectCameraCombo = QtWidgets.QComboBox(self.centralwidget)
         self.selectCameraCombo.setEditable(True)
         self.selectCameraCombo.setObjectName("selectCameraCombo")
@@ -250,19 +254,22 @@ class Ui_MainWindow(object):
         self.th4 = Thread4(self)
         self.th5 = Thread5(self)
         self.th6 = Thread6(self)
-        self.camfeed = CamFeed(self)
+        # self.th7 = Thread7(self)
+        # self.camfeed = CamFeed(self)
         self.thm = ThreadM(self)
         self.thud = ThreadHud(self)
         self.thgps = ThreadGPS(self)
 
-        self.camfeed.start()
+        # self.camfeed.start()
+        self.startmc()
         self.selectCameraCombo.currentIndexChanged.connect(self.camopen)
-        self.motorcode.clicked.connect(self.startmc)
+        # self.cam7open()
+        # self.motorcode.clicked.connect(self.startmc)
 
     def retranslateUi(self, MainWindow):
         _translate = QtCore.QCoreApplication.translate
         MainWindow.setWindowTitle(_translate("MainWindow", "Camera Window"))
-        self.motorcode.setText(_translate("MainWindow", "Motor Code"))
+        # self.motorcode.setText(_translate("MainWindow", "Motor Code"))
         self.addCameraButton.setText(_translate("MainWindow", "Add Camera"))
         self.closeCameraButton.setText(_translate("MainWindow", "Close Camera"))
         self.label.setText(_translate("MainWindow", "GEAR"))
@@ -281,6 +288,7 @@ class Ui_MainWindow(object):
         self.label_14.setText(_translate("MainWindow", "Lat:"))
         self.label_15.setText(_translate("MainWindow", "Lon:"))
         self.label_24.setText(_translate("MainWindow", "Code"))
+        self.label_21.setText(_translate("MainWindow", "BMS Values"))
 
     def startmc(self):
         self.thm.start()
@@ -291,12 +299,15 @@ class Ui_MainWindow(object):
         self.thm.signalm.connect(self.label_2.setText)
         self.thm.signalL1.connect(self.label_17.setText)
         self.thm.signalL2.connect(self.label_18.setText)
+        self.thm.signalG.connect(self.label_23.setText)
+        self.thm.signalS.connect(self.label_20.setText)
         self.thm.signalc.connect(self.label_24.setText)
         self.thud.start()
         self.thud.signalHUD.connect(self.headingLabel.setPixmap)
         self.thgps.start()
         self.thgps.signalLat.connect(self.label_12.setText)
         self.thgps.signalLon.connect(self.label_13.setText)
+        # self.thm.signalbms.connect(self.label_21.setText)
 
     def camopen(self,i):
         if i==-1:
@@ -348,6 +359,10 @@ class Ui_MainWindow(object):
     def cam6open(self):
         self.th6.signal6.connect(self.label_5.setPixmap)
         self.th6.start()
+
+    # def cam7open(self):
+    #     self.th7.signal7.connect(self.label_5.setPixmap)
+    #     self.th7.start()
 
     def camopenAll(self):
         self.th1.signal1.connect(self.label_1.setPixmap)

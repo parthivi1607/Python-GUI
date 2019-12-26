@@ -375,39 +375,46 @@ class ThreadM(QThread):
         self.pub_wasd = rospy.Publisher('wasd', String, queue_size=10)
 
         try:
-            try:
-                print("Rover Joystick")
-                self.joy = pygame.joystick.Joystick(0)
-                self.joy.init()
-            except:
-                print("1st joystick not found")
-                os.execl(sys.executable, sys.executable, * sys.argv)
-            else:
-                while True:
-                    self.mode = raw_input("Use [t]cp/ip, [s]erial, [T]eleop: ")
-                    #self.mode = input("Use [t]cp/ip, [s]erial, [T]eleop: ")
-                    ## SELECT MODE ##
+            while True:
+                self.mode = raw_input("Use [t]cp/ip, [s]erial, [T]eleop: ")
+                #self.mode = input("Use [t]cp/ip, [s]erial, [T]eleop: ")
+                ## SELECT MODE ##
 
-                    if self.mode == 's':
-                        import serial
-                        try:
-                            self.ser = serial.Serial('/dev/ttyUSB0', 115200)
-                        except:
-                            print("TTL not connected")
-                            os.execl(sys.executable, sys.executable, * sys.argv)
-                        break
+                if self.mode == 's':
+                    # try:
+                    #     self.ser = serial.Serial('/dev/ttyUSB0', 115200)
+                    # except:
+                    #     print("TTL not connected")
+                    #     os.execl(sys.executable, sys.executable, * sys.argv)
+                    try:
+                        print("Rover Joystick")
+                        self.joy = pygame.joystick.Joystick(0)
+                        self.joy.init()
+                    except:
+                        print("1st joystick not found")
+                        self.mode = 'T'
+                        # os.execl(sys.executable, sys.executable, * sys.argv)
+                    # break
 
-                    elif self.mode == 't':
-                        import socket
-                        #self.host = '10.42.0.201'
-                        #self.host = '192.168.43.21'
-                        self.host = '192.168.1.7' #LAN to UART
-                        #self.host = '192.168.1.169'
-                        print(self.host)
-                        self.comm_sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-                        #self.port = 1234
-                        self.port = 5005 #LAN to UART
+                elif self.mode == 't':
+                    #self.host = '10.42.0.201'
+                    #self.host = '192.168.43.21'
+                    self.host = '192.168.1.7' #LAN to UART
+                    #self.host = '192.168.1.169'
+                    print(self.host)
+                    self.comm_sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                    #self.port = 1234
+                    self.port = 5005 #LAN to UART
 
+                    try:
+                        print("Rover Joystick")
+                        self.joy = pygame.joystick.Joystick(0)
+                        self.joy.init()
+                    except:
+                        print("1st joystick not found")
+                        self.mode = 'T'
+                        # os.execl(sys.executable, sys.executable, * sys.argv)
+                    else:
                         while True:
                             try:
                                 self.comm_sock.connect((self.host, self.port))
@@ -415,108 +422,108 @@ class ThreadM(QThread):
                                 break
                             except socket.error:
                                 self.port += 1
-                        break
+                    # break
 
-                    elif self.mode == 'T':
-                        screen = pygame.display.set_mode((300, 300))
-                        pygame.display.set_caption("WASD OVERRIDE")
-                        white = (255, 255, 255)
-                        background = pygame.Surface(screen.get_size())
-                        background.fill(white)
-                        sprite = pygame.image.load("wasd.png")
-                        sprite_rect = sprite.get_rect()
-                        screen.blit(sprite, sprite_rect)
-                        pygame.display.flip()
-                        self.clock = pygame.time.Clock()
-                        break
+                if self.mode == 'T':
+                    screen = pygame.display.set_mode((300, 300))
+                    pygame.display.set_caption("WASD OVERRIDE")
+                    white = (255, 255, 255)
+                    background = pygame.Surface(screen.get_size())
+                    background.fill(white)
+                    sprite = pygame.image.load("wasd.png")
+                    sprite_rect = sprite.get_rect()
+                    screen.blit(sprite, sprite_rect)
+                    pygame.display.flip()
+                    self.clock = pygame.time.Clock()
+                    break
 
-                    else:
-                        print("Wrong input. Enter again.")
-                        continue
+                elif self.mode!='s' and self.mode!='t':
+                    print("Wrong input. Enter again.")
+                    continue
 
-                self.check_running = True
-                self.numgears = 10
-                self.x_joy = 0
-                self.y_joy = 0
-                self.gear = 0
-                self.x_joy_last = 8000
-                self.y_joy_last = 8000
-                self.gear_last = 0
-                self.addx = 8000
-                self.addy = 8000
-                self.reconnected = False
-                self.idle = False
-                self.hill_assist = False
-                self.rotate = 0
-                self.switch = True
-                self.active = True
-                self.M_msg = 'n'
+            self.check_running = True
+            self.numgears = 10
+            self.x_joy = 0
+            self.y_joy = 0
+            self.gear = 0
+            self.x_joy_last = 8000
+            self.y_joy_last = 8000
+            self.gear_last = 0
+            self.addx = 8000
+            self.addy = 8000
+            self.reconnected = False
+            self.idle = False
+            self.hill_assist = False
+            self.rotate = 0
+            self.switch = True
+            self.active = True
+            self.M_msg = 'n'
 
-                try:
-                    # self.check_thread = threading.Thread(target=self.check_joy, args=())
-                    # self.check_thread.start()
-                    while True:
-                        pygame.event.pump()
-                        self.on = self.joy.get_button(1)
-                        if self.on:
-                            sleep(0.2)
-                            if self.joy.get_button(1):
-                                if self.active == True:
-                                    self.active = False
-                                    print('Idle')
-                                    self.signalc.emit("Idle")
-                                else:
-                                    self.active = True
-                                    print('Active')
-
-                        if self.active:
-                            self.change = self.joy.get_button(0)
-                            if self.change:
-                                time.sleep(0.2)
-                                if self.joy.get_button(0):
-                                    if self.switch == True:
-                                        self.switch = False
-                                        print('Arm')
-                                    else:
-                                        self.switch = True
-                                        print('Motor')
-
-                            if self.switch:
-                                self.motor_code()
-                                self.signalc.emit("Motor code")
+            try:
+                # self.check_thread = threading.Thread(target=self.check_joy, args=())
+                # self.check_thread.start()
+                while True:
+                    pygame.event.pump()
+                    self.on = self.joy.get_button(1)
+                    if self.on:
+                        sleep(0.2)
+                        if self.joy.get_button(1):
+                            if self.active == True:
+                                self.active = False
+                                print('Idle')
+                                self.signalc.emit("Idle")
                             else:
-                                try:
-                                    self.arm_code()
-                                    self.signalc.emit("Arm code")
-                                except:
-                                    self.signalc.emit("2nd joystick not found")
-                                    if self.mode == 'T':
-                                        ob2.data = "{}".format('m 1 39 90 96 135 186 192 n')
-                                        self.pub_je.publish(ob2)
-                                        self.wasd_publisher()
-                                    else:
-                                        self.x_joy = self.y_joy = 8000
-                                        self.gear = 1
-                                        #print(self.x_joy,self.y_joy,self.gear)
-                                        self.sending()
+                                self.active = True
+                                print('Active')
 
-                            self.mast_cam()
+                    if self.active:
+                        self.change = self.joy.get_button(0)
+                        if self.change:
+                            time.sleep(0.2)
+                            if self.joy.get_button(0):
+                                if self.switch == True:
+                                    self.switch = False
+                                    print('Arm')
+                                else:
+                                    self.switch = True
+                                    print('Motor')
 
-                except:
-                    self.check_running = False
-                    #self.check_thread.join()
+                        if self.switch:
+                            self.motor_code()
+                            self.signalc.emit("Motor code")
+                        else:
+                            try:
+                                self.arm_code()
+                                self.signalc.emit("Arm code")
+                            except:
+                                self.signalc.emit("2nd joystick not found")
+                                if self.mode == 'T':
+                                    ob2.data = "{}".format('m 1 39 90 96 135 186 192 n')
+                                    self.pub_je.publish(ob2)
+                                    self.wasd_publisher()
+                                else:
+                                    self.x_joy = self.y_joy = 8000
+                                    self.gear = 1
+                                    #print(self.x_joy,self.y_joy,self.gear)
+                                    self.sending()
+
+                        self.mast_cam()
+
+            except:
+                while True:
+                    self.teleop_publisher()
+                    self.wasd_publisher()
+
+            finally:
+                self.check_running = False
+                #self.check_thread.join()
+                if self.mode == 't':
                     self.comm_sock.close()
-                    pass
+                print("Closed thread...")
 
-                finally:
-                    self.check_running = False
-                    #self.check_thread.join()
-                    if self.mode == 't':
-                        self.comm_sock.close()
-                    print("Closed thread...")
+            print("Exiting joystick...")
+            pygame.quit()
 
-                print("Exiting joystick...")
-                pygame.quit()
         except:
             sys.exit()
             QCoreApplication.quit()
