@@ -80,8 +80,10 @@ class ThreadM(QThread):
     #BMS
     signalbms = pyqtSignal(str)
 
-    def __init__(self, parent=None):
+    def __init__(self, mode):
         QThread.__init__(self, parent=None)
+        self.mode = mode
+        print(self.mode)
 
     def tcp_send(self, data):
         self.comm_sock.sendall(chr(data))  # for python 2.7
@@ -376,16 +378,15 @@ class ThreadM(QThread):
 
         try:
             while True:
-                self.mode = raw_input("Use [t]cp/ip, [s]erial, [T]eleop: ")
-                #self.mode = input("Use [t]cp/ip, [s]erial, [T]eleop: ")
-                ## SELECT MODE ##
+                # self.mode = raw_input("Use [t]cp/ip, [s]erial, [T]eleop: ")
+                # self.mode = input("Use [t]cp/ip, [s]erial, [T]eleop: ")
 
                 if self.mode == 's':
-                    # try:
-                    #     self.ser = serial.Serial('/dev/ttyUSB0', 115200)
-                    # except:
-                    #     print("TTL not connected")
-                    #     os.execl(sys.executable, sys.executable, * sys.argv)
+                    try:
+                        self.ser = serial.Serial('/dev/ttyUSB0', 115200)
+                    except:
+                        print("TTL not connected")
+                        # os.execl(sys.executable, sys.executable, * sys.argv)
                     try:
                         print("Rover Joystick")
                         self.joy = pygame.joystick.Joystick(0)
@@ -394,7 +395,7 @@ class ThreadM(QThread):
                         print("1st joystick not found")
                         self.mode = 'T'
                         # os.execl(sys.executable, sys.executable, * sys.argv)
-                    # break
+                    break
 
                 elif self.mode == 't':
                     #self.host = '10.42.0.201'
@@ -422,7 +423,7 @@ class ThreadM(QThread):
                                 break
                             except socket.error:
                                 self.port += 1
-                    # break
+                    break
 
                 if self.mode == 'T':
                     screen = pygame.display.set_mode((300, 300))
@@ -510,6 +511,7 @@ class ThreadM(QThread):
                         self.mast_cam()
 
             except:
+                print("Switched to Tele-op")
                 while True:
                     self.teleop_publisher()
                     self.wasd_publisher()

@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-from joy2 import *
+from joy import *
 
 
 class ThreadHud(QThread):
@@ -69,8 +69,8 @@ class ThreadGPS(QThread):
         self.lat = 0
         self.lon = 0
         while True:
-            self.signalLat.emit(str(self.lat))
-            self.signalLon.emit(str(self.lon))
+            self.signalLat.emit("Lat : "+str(self.lat))
+            self.signalLon.emit("Lon : "+str(self.lon))
 '''
 from sensor_msgs.msg import Imu,NavSatFix
 from tf.transformations import euler_from_quaternion

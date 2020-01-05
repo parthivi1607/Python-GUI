@@ -7,7 +7,7 @@
 # WARNING! All changes made in this file will be lost!
 
 
-from cam import *
+from client import *
 
 
 class Ui_MainWindow(object):
@@ -24,16 +24,10 @@ class Ui_MainWindow(object):
         self.gridLayout.setObjectName("gridLayout")
         self.horizontalLayout_2 = QtWidgets.QHBoxLayout()
         self.horizontalLayout_2.setObjectName("horizontalLayout_2")
-        # spacerItem4 = QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
-        # self.horizontalLayout_2.addItem(spacerItem4)
         self.label_21 = QtWidgets.QLabel(self.centralwidget)
         self.label_21.setAlignment(QtCore.Qt.AlignCenter)
         self.label_21.setObjectName("label_21")
         self.horizontalLayout_2.addWidget(self.label_21)
-        self.lineEdit = QtWidgets.QLineEdit(placeholderText="Use [t]cp/ip, [s]erial, [T]eleop: ")
-        self.lineEdit.setGeometry(QtCore.QRect(110, 160, 113, 25))
-        self.lineEdit.setObjectName("lineEdit")
-        self.horizontalLayout_2.addWidget(self.lineEdit)
         # self.motorcode = QtWidgets.QPushButton(self.centralwidget)
         # self.motorcode.setObjectName("motorcode")
         # self.horizontalLayout_2.addWidget(self.motorcode)
@@ -167,11 +161,11 @@ class Ui_MainWindow(object):
         self.label_14.setAlignment(QtCore.Qt.AlignCenter)
         self.label_14.setObjectName("label_14")
         self.horizontalLayout_13.addWidget(self.label_14)
-        # self.label_12 = QtWidgets.QLabel(self.centralwidget)
-        # self.label_12.setText("")
-        # self.label_12.setObjectName("label_12")
-        # self.label_12.setAlignment(QtCore.Qt.AlignCenter)
-        # self.horizontalLayout_13.addWidget(self.label_12)
+        self.label_12 = QtWidgets.QLabel(self.centralwidget)
+        self.label_12.setText("")
+        self.label_12.setObjectName("label_12")
+        self.label_12.setAlignment(QtCore.Qt.AlignCenter)
+        self.horizontalLayout_13.addWidget(self.label_12)
         self.verticalLayout.addLayout(self.horizontalLayout_13)
         self.horizontalLayout_15 = QtWidgets.QHBoxLayout()
         self.horizontalLayout_15.setObjectName("horizontalLayout_15")
@@ -179,11 +173,11 @@ class Ui_MainWindow(object):
         self.label_15.setAlignment(QtCore.Qt.AlignCenter)
         self.label_15.setObjectName("label_15")
         self.horizontalLayout_15.addWidget(self.label_15)
-        # self.label_13 = QtWidgets.QLabel(self.centralwidget)
-        # self.label_13.setText("")
-        # self.label_13.setObjectName("label_13")
-        # self.label_13.setAlignment(QtCore.Qt.AlignCenter)
-        # self.horizontalLayout_15.addWidget(self.label_13)
+        self.label_13 = QtWidgets.QLabel(self.centralwidget)
+        self.label_13.setText("")
+        self.label_13.setObjectName("label_13")
+        self.label_13.setAlignment(QtCore.Qt.AlignCenter)
+        self.horizontalLayout_15.addWidget(self.label_13)
         self.verticalLayout.addLayout(self.horizontalLayout_15)
         self.horizontalLayout.addLayout(self.verticalLayout)
         self.gridLayout.addLayout(self.horizontalLayout, 0, 0, 1, 1)
@@ -254,28 +248,14 @@ class Ui_MainWindow(object):
         self.retranslateUi(MainWindow)
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
 
-        self.th1 = ThreadCam('rtsp://192.168.1.10/user=admin&password=&channel=1&stream=1.sdp',8481)
-        self.th2 = ThreadCam('http://root:mrm@192.168.1.90/axis-cgi/mjpg/video.cgi?camera=1',8482)
-        self.th3 = ThreadCam('http://root:mrm@192.168.1.90/axis-cgi/mjpg/video.cgi?camera=2',8483)
-        self.th4 = ThreadCam('http://root:mrm@192.168.1.90/axis-cgi/mjpg/video.cgi?camera=3',8484)
-        self.th5 = ThreadCam('http://root:mrm@192.168.1.90/axis-cgi/mjpg/video.cgi?camera=4',8485)
-        self.th6 = ThreadCam('rtsp://192.168.1.8/user=admin&password=&channel=1&stream=1.sdp',8486)
-        '''
-        self.th1 = Thread1(self)
-        self.th2 = Thread2(self)
-        self.th3 = Thread3(self)
-        self.th4 = Thread4(self)
-        self.th5 = Thread5(self)
-        self.th6 = Thread6(self)
-        '''
-        self.thud = ThreadHud(self)
-        self.thgps = ThreadGPS(self)
-        self.hudval()
+        self.th1 = ClientThread(8481)
+        self.th2 = ClientThread(8482)
+        self.th3 = ClientThread(8483)
+        self.th4 = ClientThread(8484)
+        self.th5 = ClientThread(8485)
+        self.th6 = ClientThread(8486)
 
-        # self.camfeed.start()
         self.selectCameraCombo.currentIndexChanged.connect(self.camopen)
-        # self.motorcode.clicked.connect(self.startmc)
-        self.lineEdit.textChanged[str].connect(self.onChanged)
 
     def retranslateUi(self, MainWindow):
         _translate = QtCore.QCoreApplication.translate
@@ -300,31 +280,6 @@ class Ui_MainWindow(object):
         self.label_15.setText(_translate("MainWindow", "Lon:"))
         self.label_24.setText(_translate("MainWindow", "Code"))
         self.label_21.setText(_translate("MainWindow", "BMS Values"))
-
-    def onChanged(self,text):
-        self.thm = ThreadM(text)
-        self.startmc()
-
-    def startmc(self):
-        self.thm.start()
-        self.thm.signalx.connect(self.label_11.setText)
-        self.thm.signaly.connect(self.label_10.setText)
-        self.thm.signalg.connect(self.label.setText)
-        self.thm.signalh.connect(self.label_16.setText)
-        self.thm.signalm.connect(self.label_2.setText)
-        self.thm.signalL1.connect(self.label_17.setText)
-        self.thm.signalL2.connect(self.label_18.setText)
-        self.thm.signalG.connect(self.label_23.setText)
-        self.thm.signalS.connect(self.label_20.setText)
-        self.thm.signalc.connect(self.label_24.setText)
-        # self.thm.signalbms.connect(self.label_21.setText)
-
-    def hudval(self):
-        self.thud.start()
-        self.thud.signalHUD.connect(self.headingLabel.setPixmap)
-        self.thgps.start()
-        self.thgps.signalLat.connect(self.label_14.setText)
-        self.thgps.signalLon.connect(self.label_15.setText)
 
     def camopen(self,i):
         if i==-1:
@@ -411,6 +366,7 @@ class Ui_MainWindow(object):
         self.th5.stop()
         self.th6.stop()
         # os.execl(sys.executable, sys.executable, * sys.argv)
+
 
 try:
     if __name__ == "__main__":

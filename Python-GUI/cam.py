@@ -10,11 +10,92 @@ from hud import *
 '''
 
 
+class ThreadCam(QThread):
+    signalcam = pyqtSignal(QPixmap)
+
+    def __init__(self, camname, portno):
+        QThread.__init__(self, parent=None)
+        self.plzrun = True
+        self.camname = camname
+        self.portno = portno
+        self.all_connections = []
+        self.all_addresses = []
+
+    def accepting_connectns(self):
+        for c in self.all_connections:
+            c.close()
+        del self.all_connections[:]
+        del self.all_addresses[:]
+
+        while True:
+            try:
+                conn, addr= self.s.accept()
+                self.s.setblocking(1)
+                self.all_connections.append(conn)
+                self.all_addresses.append(addr)
+            except:
+                print ("Error accepting connection")
+
+    def run(self):
+        self.plzrun = True
+        try:
+            self.s=socket.socket(socket.AF_INET,socket.SOCK_STREAM)
+            print('Socket created')
+            self.s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        except socket.error:
+            print "Error creating socket"
+            # sys.exit(1)
+
+        try:
+            self.s.bind((socket.gethostname(),int(self.portno)))
+            print('Socket bind complete')
+        except socket.gaierror:
+            print "Address-related error connecting to server"
+            # sys.exit(1)
+        except socket.error:
+            print "Connection error"
+            # sys.exit(1)
+
+        self.s.listen(10)
+        print('Socket now listening')
+
+        cam = cv2.VideoCapture(self.camname)
+
+        thr = threading.Thread(target=self.accepting_connectns)
+        thr.start()
+        self.encode_param = [int(cv2.IMWRITE_JPEG_QUALITY), 90]
+
+        while self.plzrun:
+            b, img = cam.read()
+            if b:
+                rgbimg = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+                convimg1 = QImage(rgbimg.data, rgbimg.shape[1], rgbimg.shape[0], QImage.Format_RGB888)
+                convimg2 = QPixmap.fromImage(convimg1)
+                image = convimg2.scaled(500,500,Qt.KeepAspectRatio)
+                self.signalcam.emit(image)
+
+                result, frame = cv2.imencode('.jpg', img, self.encode_param)
+                data = pickle.dumps(frame, 0)
+                size = len(data)
+
+                for conn in self.all_connections:
+                    if conn.fileno() != -1:
+                        try:
+                            conn.sendall(struct.pack(">L", size) + data)
+                        except:
+                            continue
+
+    def stop(self):
+        self.plzrun = False
+        self.quit()
+        self.wait()
+
+'''
 class Thread1(QThread):
     signal1 = pyqtSignal(QPixmap)
 
     def __init__(self, parent=None):
-        QThread.__init__(self, parent=None)
+        QThread.__init__(self)
         self.plzrun = True
 
     def accepting_connectns(self):
@@ -482,7 +563,7 @@ class Thread6(QThread):
         self.plzrun = False
         self.quit()
         self.wait()
-
+'''
 
 '''
 class CamFeed(QThread):
